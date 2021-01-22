@@ -50,7 +50,7 @@ jobs:
         os: [windows-latest, ubuntu-latest, macos-latest]
         python: [36, 37, 38, 39]
         bitness: [32, 64]
-        qemu_arch: auto
+        qemu_arch: [auto]
         include:
           # Run 32 and 64 bit version in parallel for Linux and Windows
           - os: windows-latest
