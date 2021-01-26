@@ -36,6 +36,51 @@ jobs:
         name: Check build trigger
         run: bash build_tools/github/check_build_trigger.sh
 
+  build_aarch64_wheels:
+    name: Build wheel for cp${{ matrix.python }}-manylinux2014_aarch64
+    runs-on: ${{ matrix.os }}
+    #needs: check_build_trigger
+    #if: needs.check_build_trigger.outputs.build
+
+    strategy:
+      # Ensure that a wheel builder finishes even if another fails
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: [36, 37, 38, 39]
+    steps:
+      - name: Checkout scikit-learn
+        uses: actions/checkout@v1
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: arm64
+
+      - name: Build and test wheels
+        env:
+          CONFTEST_PATH: ${{ github.workspace }}/conftest.py
+          CONFTEST_NAME: conftest.py
+          CIBW_ENVIRONMENT: OMP_NUM_THREADS=2
+                            OPENBLAS_NUM_THREADS=2
+                            SKLEARN_SKIP_NETWORK_TESTS=1
+                            SKLEARN_BUILD_PARALLEL=3
+          CIBW_BUILD: cp${{ matrix.python }}-manylinux2014_aarch64
+          CIBW_TEST_REQUIRES: pytest pandas threadpoolctl
+          CIBW_TEST_COMMAND: bash {project}/build_tools/github/test_wheels.sh
+          CIBW_ARCHS_LINUX: aarch64
+
+        run: bash build_tools/github/build_wheels.sh
+
+      - name: Store artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: wheelhouse/*.whl
+
   # Build the wheels for Linux, Windows and macOS for Python 3.6 and newer
   build_wheels:
     name: Build wheel for cp${{ matrix.python }}-${{ matrix.platform_id }}
@@ -50,7 +95,6 @@ jobs:
         os: [windows-latest, ubuntu-latest, macos-latest]
         python: [36, 37, 38, 39]
         bitness: [32, 64]
-        qemu_arch: [auto, aarch64]
         include:
           # Run 32 and 64 bit version in parallel for Linux and Windows
           - os: windows-latest
@@ -68,16 +112,9 @@ jobs:
           - os: macos-latest
             bitness: 64
             platform_id: macosx_x86_64
-          - os: ubuntu-latest
-            bitness: 64
-            platform_id: manylinux2014_aarch64
         exclude:
           - os: macos-latest
             bitness: 32
-          - os: macos-latest
-            qemu_arch: aarch64
-          - os: windows-latest
-            qemu_arch: aarch64
 
     steps:
       - name: Checkout scikit-learn
