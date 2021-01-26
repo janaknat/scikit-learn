@@ -73,7 +73,6 @@ jobs:
             platform_id: manylinux2014_aarch64
             qemu_arch: [aarch64]
             python: [36, 37, 38, 39]
-            bitness: [64]
         exclude:
           - os: macos-latest
             bitness: 32
