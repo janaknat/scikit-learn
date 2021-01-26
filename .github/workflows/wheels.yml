@@ -50,7 +50,7 @@ jobs:
         os: [windows-latest, ubuntu-latest, macos-latest]
         python: [36, 37, 38, 39]
         bitness: [32, 64]
-        qemu_arch: [auto]
+        qemu_arch: [auto, aarch64]
         include:
           # Run 32 and 64 bit version in parallel for Linux and Windows
           - os: windows-latest
@@ -71,11 +71,13 @@ jobs:
           - os: ubuntu-latest
             bitness: 64
             platform_id: manylinux2014_aarch64
-            qemu_arch: [aarch64]
-            python: [36, 37, 38, 39]
         exclude:
           - os: macos-latest
             bitness: 32
+          - os: macos-latest
+            qemu_arch: aarch64
+          - os: windows-latest
+            qemu_arch: aarch64
 
     steps:
       - name: Checkout scikit-learn
@@ -105,7 +107,7 @@ jobs:
           CIBW_TEST_REQUIRES: pytest pandas threadpoolctl
           CIBW_TEST_COMMAND: bash {project}/build_tools/github/test_wheels.sh
           CIBW_TEST_COMMAND_WINDOWS: bash {project}/build_tools/github/test_windows_wheels.sh ${{ matrix.python }} ${{ matrix.bitness }}
-          CIBW_ARCHS_LINUX: ${{ matrix.qemu_arch }}
+          CIBW_ARCHS_LINUX: ${{ matrix.qemu_arch }} 
 
         run: bash build_tools/github/build_wheels.sh
 
