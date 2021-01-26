@@ -69,7 +69,7 @@ jobs:
                             OPENBLAS_NUM_THREADS=2
                             SKLEARN_SKIP_NETWORK_TESTS=1
                             SKLEARN_BUILD_PARALLEL=3
-          CIBW_BUILD: cp${{ matrix.python }}-manylinux2014_aarch64
+          CIBW_BUILD: cp${{ matrix.python }}-manylinux_aarch64
           CIBW_TEST_REQUIRES: pytest pandas threadpoolctl
           CIBW_TEST_COMMAND: bash {project}/build_tools/github/test_wheels.sh
           CIBW_ARCHS_LINUX: aarch64
